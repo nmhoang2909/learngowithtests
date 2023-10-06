@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "example.com/go-test/arrays_and_slices"
+	. "example.com/go-test/arraysandslices"
 )
 
 func TestSum(t *testing.T) {
