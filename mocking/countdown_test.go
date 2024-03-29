@@ -1,23 +1,58 @@
-package mocking_test
+package mocking
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
+	"time"
 
-	. "example.com/go-test/mocking"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCountDown(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	spySleepr := &SpySleeper{}
-	CountDown(buffer, spySleepr)
-	want := `3
+	t.Run("print 3 times to Go!", func(t *testing.T) {
+		buffer := &bytes.Buffer{}
+		CountDown(buffer, &SpyCountdownOperations{})
+		want := `3
 2
 1
 Go!`
-	got := buffer.String()
-	assert.Equal(t, want, got)
-	assert.True(t, spySleepr.Call == 3)
+		got := buffer.String()
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("sleep before every print", func(t *testing.T) {
+		spySleepPrinter := &SpyCountdownOperations{}
+		CountDown(spySleepPrinter, spySleepPrinter)
+
+		want := []string{
+			Write,
+			Sleep,
+
+			Write,
+			Sleep,
+
+			Write,
+			Sleep,
+
+			Write,
+		}
+
+		if !reflect.DeepEqual(want, spySleepPrinter.Calls) {
+			t.Errorf("want: %v but got: %v", want, spySleepPrinter.Calls)
+		}
+	})
 }
 
+func TestConfigurableSleeper(t *testing.T) {
+	sleepTime := 5 * time.Second
+
+	spyTime := &SpyTime{}
+	sleeper := ConfigurableSleeper{
+		duration: sleepTime,
+		sleep:    spyTime.Sleep,
+	}
+	sleeper.Sleep()
+
+	assert.Equal(t, sleepTime, spyTime.durationSlept)
+}

@@ -3,7 +3,6 @@ package mocking
 import (
 	"fmt"
 	"io"
-	"log"
 	"time"
 )
 
@@ -22,19 +21,37 @@ type Sleeper interface {
 	Sleep()
 }
 
-// Mock SpySleeper
-type SpySleeper struct {
-	Call int
+type SpyCountdownOperations struct {
+	Calls []string
 }
 
-func (s *SpySleeper) Sleep() {
-	s.Call++
+var (
+	Sleep = "sleep"
+	Write = "write"
+)
+
+func (s *SpyCountdownOperations) Sleep() {
+	s.Calls = append(s.Calls, Sleep)
 }
 
-type DefaultSleeper struct{}
+func (s *SpyCountdownOperations) Write(p []byte) (n int, err error) {
+	s.Calls = append(s.Calls, Write)
+	return
+}
 
-// Real Sleeper
-func (d *DefaultSleeper) Sleep() {
-	log.Printf("Sleeping in %v second", DefaultWaiting)
-	time.Sleep(DefaultWaiting)
+type ConfigurableSleeper struct {
+	duration time.Duration
+	sleep    func(time.Duration)
+}
+
+func (c *ConfigurableSleeper) Sleep() {
+	c.sleep(c.duration)
+}
+
+type SpyTime struct {
+	durationSlept time.Duration
+}
+
+func (s *SpyTime) Sleep(duration time.Duration) {
+	s.durationSlept = duration
 }
